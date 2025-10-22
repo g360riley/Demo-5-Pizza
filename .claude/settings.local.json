@@ -15,7 +15,10 @@
       "WebFetch(domain:www.brandcolorcode.com)",
       "Bash(git init:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(dir:*)",
+      "Bash(timeout:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

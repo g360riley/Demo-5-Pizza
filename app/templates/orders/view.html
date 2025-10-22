@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.order_id }} - Pizza Management System{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-receipt me-2"></i>Order #{{ order.order_id }}</h1>
+    <a href="{{ url_for('orders.index') }}" class="btn btn-secondary">Back to Orders</a>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header"><h5>Order Information</h5></div>
+            <div class="card-body">
+                <p><strong>Order Date:</strong> {{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</p>
+                <p><strong>Status:</strong> <span class="badge bg-{% if order.status == 'Completed' %}success{% elif order.status == 'Pending' %}warning{% else %}info{% endif %}">{{ order.status }}</span></p>
+                <p><strong>Notes:</strong> {{ order.notes or 'N/A' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header"><h5>Payment Details</h5></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2"><strong>Subtotal:</strong><span>${{ "%.2f"|format(order.subtotal) }}</span></div>
+                <div class="d-flex justify-content-between mb-2"><strong>Tax ({{ "%.1f"|format(order.tax_rate * 100) }}%):</strong><span>${{ "%.2f"|format(order.tax_amount) }}</span></div>
+                <hr>
+                <div class="d-flex justify-content-between"><h5>Total:</h5><h5>${{ "%.2f"|format(order.total_amount) }}</h5></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><h5>Order Items</h5></div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>Pizza</th><th>Size</th><th>Quantity</th><th>Unit Price</th><th>Subtotal</th></tr></thead>
+            <tbody>
+                {% for detail in details %}
+                <tr>
+                    <td>{{ detail.pizza_name }}</td>
+                    <td>{{ detail.pizza_size }}</td>
+                    <td>{{ detail.quantity }}</td>
+                    <td>${{ "%.2f"|format(detail.unit_price) }}</td>
+                    <td>${{ "%.2f"|format(detail.subtotal) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
