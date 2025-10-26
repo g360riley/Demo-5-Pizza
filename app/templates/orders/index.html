@@ -5,31 +5,95 @@
     <h1><i class="fas fa-shopping-cart me-2"></i>Orders</h1>
     <a href="{{ url_for('orders.new') }}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>New Order</a>
 </div>
-<div class="card">
+<!-- Table View (Desktop) -->
+<div class="card d-none d-md-block">
     <div class="card-body">
-        <table class="table table-hover">
-            <thead>
-                <tr><th>Order #</th><th>Customer</th><th>Employee</th><th>Date</th><th>Total</th><th>Tax</th><th>Status</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>#{{ order.order_id }}</td>
-                    <td>{{ order.customer_name }}</td>
-                    <td>{{ order.employee_name }}</td>
-                    <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</td>
-                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
-                    <td>${{ "%.2f"|format(order.tax_amount) }} ({{ "%.1f"|format(order.tax_rate * 100) }}%)</td>
-                    <td><span class="badge bg-{% if order.status == 'Completed' %}success{% elif order.status == 'Pending' %}warning{% else %}info{% endif %}">{{ order.status }}</span></td>
-                    <td>
-                        <a href="{{ url_for('orders.view', order_id=order.order_id) }}" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
-                        <button class="btn btn-sm btn-danger" onclick="confirmDeleteOrder({{ order.order_id }})"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr><th>Order #</th><th>Customer</th><th>Employee</th><th>Date</th><th>Total</th><th>Tax</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.order_id }}</td>
+                        <td>{{ order.customer_name }}</td>
+                        <td>{{ order.employee_name }}</td>
+                        <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</td>
+                        <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>${{ "%.2f"|format(order.tax_amount) }} ({{ "%.1f"|format(order.tax_rate * 100) }}%)</td>
+                        <td>
+                            <select class="form-select form-select-sm status-select" data-order-id="{{ order.order_id }}" onchange="updateOrderStatus({{ order.order_id }}, this.value)">
+                                <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                <option value="In Progress" {% if order.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                <option value="Completed" {% if order.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('orders.view', order_id=order.order_id) }}" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                            <button class="btn btn-sm btn-danger" onclick="confirmDeleteOrder({{ order.order_id }})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+</div>
+
+<!-- Card View (Mobile) -->
+<div class="d-md-none">
+    {% for order in orders %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="card-title mb-1">Order #{{ order.order_id }}</h5>
+                </div>
+                <div>
+                    <a href="{{ url_for('orders.view', order_id=order.order_id) }}" class="btn btn-sm btn-info me-1">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteOrder({{ order.order_id }})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="row g-2">
+                <div class="col-12 mb-2">
+                    <small class="text-muted">Status:</small><br>
+                    <select class="form-select form-select-sm status-select" data-order-id="{{ order.order_id }}" onchange="updateOrderStatus({{ order.order_id }}, this.value)">
+                        <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                        <option value="In Progress" {% if order.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Completed" {% if order.status == 'Completed' %}selected{% endif %}>Completed</option>
+                        <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <small class="text-muted">Customer:</small><br>
+                    <strong>{{ order.customer_name }}</strong>
+                </div>
+                <div class="col-12">
+                    <small class="text-muted">Employee:</small><br>
+                    <strong>{{ order.employee_name }}</strong>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted">Total:</small><br>
+                    <strong class="text-success">${{ "%.2f"|format(order.total_amount) }}</strong>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted">Tax:</small><br>
+                    <strong>${{ "%.2f"|format(order.tax_amount) }}</strong>
+                </div>
+                <div class="col-12">
+                    <small class="text-muted">Date:</small><br>
+                    <strong>{{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 <!-- Delete Confirmation Modal -->
@@ -73,5 +137,31 @@ $('#confirmDeleteOrderBtn').on('click', function() {
             });
     }
 });
+
+// Update order status
+function updateOrderStatus(orderId, newStatus) {
+    if (!confirm('Are you sure you want to change the order status to "' + newStatus + '"?')) {
+        // Reset the dropdown to original value if user cancels
+        location.reload();
+        return;
+    }
+
+    $.post("{{ url_for('orders.update_status', order_id=0) }}".replace('/0', '/' + orderId), {
+        status: newStatus
+    })
+    .done(function(response) {
+        if (response.success) {
+            alert(response.message);
+            location.reload();
+        } else {
+            alert('Error: ' + response.message);
+            location.reload();
+        }
+    })
+    .fail(function() {
+        alert('An error occurred while updating the order status.');
+        location.reload();
+    });
+}
 </script>
 {% endblock %}

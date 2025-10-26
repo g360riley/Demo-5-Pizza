@@ -69,10 +69,12 @@ def create_tables():
                 city VARCHAR(100) NOT NULL,
                 state VARCHAR(2) NOT NULL,
                 zip_code VARCHAR(10) NOT NULL,
+                archived BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_email (email),
-                INDEX idx_last_name (last_name)
+                INDEX idx_last_name (last_name),
+                INDEX idx_archived (archived)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
 
@@ -87,10 +89,12 @@ def create_tables():
                 base_price DECIMAL(10, 2) NOT NULL,
                 category VARCHAR(50) NOT NULL,
                 available BOOLEAN DEFAULT TRUE,
+                archived BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_category (category),
-                INDEX idx_available (available)
+                INDEX idx_available (available),
+                INDEX idx_archived (archived)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
 

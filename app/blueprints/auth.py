@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from app.db_service import get_employee_by_email, update_employee, update_employee_password
 
@@ -116,7 +116,25 @@ def change_password():
 @auth.route('/logout')
 @login_required
 def logout():
-    """Employee logout"""
+    """Employee logout with proper session cleanup"""
+    # Clear Flask-Login session
     logout_user()
+
+    # Clear all session data
+    session.clear()
+
+    # Flash message
     flash('You have been logged out successfully.', 'success')
-    return redirect(url_for('index'))
+
+    # Create response with redirect
+    response = make_response(redirect(url_for('index')))
+
+    # Add cache-control headers to prevent back button access
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+
+    # Delete session cookie
+    response.set_cookie('session', '', expires=0)
+
+    return response

@@ -86,12 +86,12 @@ def update(customer_id):
 @customers.route('/delete/<int:customer_id>', methods=['POST'])
 @login_required
 def delete(customer_id):
-    """Delete a customer via AJAX"""
+    """Archive a customer via AJAX"""
     try:
         success = delete_customer(customer_id)
         if success:
-            return jsonify({'success': True, 'message': 'Customer deleted successfully!'})
+            return jsonify({'success': True, 'message': 'Customer archived successfully!'})
         else:
-            return jsonify({'success': False, 'message': 'Failed to delete customer.'}), 500
+            return jsonify({'success': False, 'message': 'Failed to archive customer.'}), 500
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pizza Management System{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -160,6 +161,98 @@
             padding: 0.5rem 0.75rem;
             border-radius: 5px;
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 767px) {
+            /* Hide sidebar on mobile by default */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 250px;
+                height: 100vh;
+                z-index: 1050;
+                transition: left 0.3s ease;
+                padding-top: 60px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            /* Mobile overlay */
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+                display: none;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+
+            /* Adjust main content padding on mobile */
+            .main-content {
+                padding: 1rem;
+            }
+
+            /* Mobile navbar adjustments */
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            /* Mobile card spacing */
+            .card {
+                margin-bottom: 1rem;
+            }
+
+            /* Reduce button sizes on mobile */
+            .btn {
+                font-size: 0.875rem;
+            }
+
+            /* Make modals full-screen on mobile */
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+
+            /* Navbar toggler for sidebar */
+            .navbar-toggler {
+                border-color: rgba(255, 255, 255, 0.5);
+            }
+
+            .navbar-toggler-icon {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            }
+        }
+
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 991px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .sidebar {
+                min-height: calc(100vh - 60px);
+            }
+        }
+
+        /* Ensure cards look good on all screen sizes */
+        .card-body {
+            word-wrap: break-word;
+        }
+
+        /* Mobile-friendly table alternative */
+        @media (max-width: 767px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -167,6 +260,11 @@
     <!-- Top Navigation -->
     <nav class="navbar navbar-expand-lg navbar-top">
         <div class="container-fluid">
+            {% if current_user.is_authenticated %}
+            <button class="navbar-toggler d-md-none me-2" type="button" id="sidebarToggle">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            {% endif %}
             <a class="navbar-brand" href="{{ url_for('index') }}">
                 <i class="fas fa-pizza-slice me-2"></i>Pizza Management System
             </a>
@@ -248,8 +346,47 @@
         </div>
     </div>
 
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Mobile sidebar toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            if (sidebarToggle && sidebar && overlay) {
+                // Toggle sidebar when sidebar toggle button is clicked
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                });
+
+                // Close sidebar when overlay is clicked
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                });
+
+                // Close sidebar when a navigation link is clicked (mobile only)
+                if (window.innerWidth < 768) {
+                    const navLinks = sidebar.querySelectorAll('.nav-link');
+                    navLinks.forEach(function(link) {
+                        link.addEventListener('click', function() {
+                            sidebar.classList.remove('show');
+                            overlay.classList.remove('show');
+                        });
+                    });
+                }
+            }
+        });
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>

@@ -11,7 +11,16 @@
             <div class="card-header"><h5>Order Information</h5></div>
             <div class="card-body">
                 <p><strong>Order Date:</strong> {{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</p>
-                <p><strong>Status:</strong> <span class="badge bg-{% if order.status == 'Completed' %}success{% elif order.status == 'Pending' %}warning{% else %}info{% endif %}">{{ order.status }}</span></p>
+                <div class="mb-3">
+                    <strong>Status:</strong><br>
+                    <select class="form-select form-select-sm mt-2" id="orderStatus" style="max-width: 200px;">
+                        <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                        <option value="In Progress" {% if order.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Completed" {% if order.status == 'Completed' %}selected{% endif %}>Completed</option>
+                        <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary mt-2" onclick="updateStatus()">Update Status</button>
+                </div>
                 <p><strong>Notes:</strong> {{ order.notes or 'N/A' }}</p>
             </div>
         </div>
@@ -47,4 +56,32 @@
         </table>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateStatus() {
+    const orderId = {{ order.order_id }};
+    const newStatus = $('#orderStatus').val();
+
+    if (!confirm('Are you sure you want to change the order status to "' + newStatus + '"?')) {
+        return;
+    }
+
+    $.post("{{ url_for('orders.update_status', order_id=0) }}".replace('/0', '/' + orderId), {
+        status: newStatus
+    })
+    .done(function(response) {
+        if (response.success) {
+            alert(response.message);
+            location.reload();
+        } else {
+            alert('Error: ' + response.message);
+        }
+    })
+    .fail(function() {
+        alert('An error occurred while updating the order status.');
+    });
+}
+</script>
 {% endblock %}

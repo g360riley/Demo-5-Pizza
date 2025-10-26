@@ -131,7 +131,7 @@ def update_employee_password(employee_id, password_hash):
 # ==================== CUSTOMER OPERATIONS ====================
 
 def get_all_customers():
-    """Get all customers"""
+    """Get all non-archived customers"""
     db = get_db()
     if not db:
         return []
@@ -140,7 +140,7 @@ def get_all_customers():
     cursor.execute("""
         SELECT customer_id, first_name, last_name, email, phone,
                address, city, state, zip_code, created_at
-        FROM customers ORDER BY last_name, first_name
+        FROM customers WHERE archived = FALSE ORDER BY last_name, first_name
     """)
     rows = cursor.fetchall()
     cursor.close()
@@ -201,13 +201,13 @@ def update_customer(customer_id, first_name, last_name, email, phone, address, c
     return True
 
 def delete_customer(customer_id):
-    """Delete a customer"""
+    """Archive a customer (soft delete to preserve order history)"""
     db = get_db()
     if not db:
         return False
 
     cursor = db.cursor()
-    cursor.execute("DELETE FROM customers WHERE customer_id = %s", (customer_id,))
+    cursor.execute("UPDATE customers SET archived = TRUE WHERE customer_id = %s", (customer_id,))
     db.commit()
     cursor.close()
     return True
@@ -215,7 +215,7 @@ def delete_customer(customer_id):
 # ==================== PIZZA OPERATIONS ====================
 
 def get_all_pizzas():
-    """Get all pizzas"""
+    """Get all non-archived pizzas"""
     db = get_db()
     if not db:
         return []
@@ -223,7 +223,7 @@ def get_all_pizzas():
     cursor = db.cursor()
     cursor.execute("""
         SELECT pizza_id, name, description, size, base_price, category, available, created_at
-        FROM pizzas ORDER BY category, name, size
+        FROM pizzas WHERE archived = FALSE ORDER BY category, name, size
     """)
     rows = cursor.fetchall()
     cursor.close()
@@ -231,7 +231,7 @@ def get_all_pizzas():
     return [Pizza(**row) for row in rows]
 
 def get_available_pizzas():
-    """Get all available pizzas"""
+    """Get all available non-archived pizzas"""
     db = get_db()
     if not db:
         return []
@@ -239,7 +239,7 @@ def get_available_pizzas():
     cursor = db.cursor()
     cursor.execute("""
         SELECT pizza_id, name, description, size, base_price, category, available, created_at
-        FROM pizzas WHERE available = TRUE ORDER BY category, name, size
+        FROM pizzas WHERE available = TRUE AND archived = FALSE ORDER BY category, name, size
     """)
     rows = cursor.fetchall()
     cursor.close()
@@ -299,16 +299,62 @@ def update_pizza(pizza_id, name, description, size, base_price, category, availa
     return True
 
 def delete_pizza(pizza_id):
-    """Delete a pizza"""
+    """Archive a pizza (soft delete to preserve sales data)"""
     db = get_db()
     if not db:
         return False
 
     cursor = db.cursor()
-    cursor.execute("DELETE FROM pizzas WHERE pizza_id = %s", (pizza_id,))
+    cursor.execute("UPDATE pizzas SET archived = TRUE WHERE pizza_id = %s", (pizza_id,))
     db.commit()
     cursor.close()
     return True
+
+def get_archived_pizzas():
+    """Get all archived pizzas"""
+    db = get_db()
+    if not db:
+        return []
+
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT pizza_id, name, description, size, base_price, category, available, created_at
+        FROM pizzas WHERE archived = TRUE ORDER BY category, name, size
+    """)
+    rows = cursor.fetchall()
+    cursor.close()
+
+    return [Pizza(**row) for row in rows]
+
+def restore_pizza(pizza_id):
+    """Restore an archived pizza (unarchive)"""
+    db = get_db()
+    if not db:
+        return False
+
+    cursor = db.cursor()
+    cursor.execute("UPDATE pizzas SET archived = FALSE WHERE pizza_id = %s", (pizza_id,))
+    db.commit()
+    cursor.close()
+    return True
+
+def permanently_delete_pizza(pizza_id):
+    """Permanently delete a pizza from the database"""
+    db = get_db()
+    if not db:
+        return False
+
+    cursor = db.cursor()
+    # This will fail if pizza is referenced in orders due to foreign key constraint
+    try:
+        cursor.execute("DELETE FROM pizzas WHERE pizza_id = %s", (pizza_id,))
+        db.commit()
+        cursor.close()
+        return True
+    except Exception as e:
+        db.rollback()
+        cursor.close()
+        raise e
 
 # ==================== ORDER OPERATIONS ====================
 
